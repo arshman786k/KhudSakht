@@ -2,7 +2,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Package, Heart, User, MapPin, Clock, CheckCircle2, Truck } from 'lucide-react';
+import { Package, Heart, User, MapPin, Clock, CheckCircle2, Truck, LogOut } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import type { User as UserType, Order } from '../App';
 
@@ -10,9 +10,10 @@ interface UserDashboardProps {
   onNavigate?: (page: string) => void;
   user: UserType | null;
   orders: Order[];
+  onLogout?: () => void;
 }
 
-export function UserDashboard({ onNavigate, user, orders }: UserDashboardProps) {
+export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashboardProps) {
   const savedDesigns = [
     { id: '1', name: 'My Custom Suit', image: 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080', date: '2025-10-08' },
     { id: '2', name: 'Embroidered Design', image: 'https://images.unsplash.com/photo-1720982892111-5e78b01b3ace?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbWJyb2lkZXJ5JTIwZGV0YWlsfGVufDF8fHx8MTc2MDI2MjQ0M3ww&ixlib=rb-4.1.0&q=80&w=1080', date: '2025-10-06' },
@@ -58,6 +59,16 @@ export function UserDashboard({ onNavigate, user, orders }: UserDashboardProps) 
                     <User className="w-4 h-4 mr-2" />
                     Profile Settings
                   </Button>
+                  <div className="pt-4 border-t border-border mt-4">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={onLogout}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
+                  </div>
                 </nav>
               </CardContent>
             </Card>

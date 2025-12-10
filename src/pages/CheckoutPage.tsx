@@ -13,7 +13,7 @@ import type { CartItem, Order } from '../App';
 interface CheckoutPageProps {
   onNavigate?: (page: string) => void;
   cartItems: CartItem[];
-  onPlaceOrder: (shippingInfo: Order['shippingInfo'], paymentMethod: string) => void;
+  onPlaceOrder: (shippingInfo: Order['shippingInfo'], paymentMethod: string) => Promise<void>;
 }
 
 export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder }: CheckoutPageProps) {
@@ -69,12 +69,12 @@ export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder }: CheckoutPa
     return true;
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!validateForm()) {
       return;
     }
     
-    onPlaceOrder(
+    await onPlaceOrder(
       {
         firstName,
         lastName,

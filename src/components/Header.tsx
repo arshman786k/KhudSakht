@@ -41,21 +41,21 @@ export function Header({ cartCount = 0, onNavigate, isLoggedIn = false }: Header
             <Button 
               variant="ghost" 
               className="hidden md:flex"
-              onClick={() => onNavigate?.('products')}
+              onClick={() => onNavigate?.(isLoggedIn ? 'products' : 'auth')}
             >
               Shop
             </Button>
             <Button 
               variant="ghost" 
               className="hidden md:flex"
-              onClick={() => onNavigate?.('customize')}
+              onClick={() => onNavigate?.(isLoggedIn ? 'customize' : 'auth')}
             >
               Customize
             </Button>
             <Button 
               variant="ghost" 
               size="icon"
-              onClick={() => onNavigate?.('cart')}
+              onClick={() => onNavigate?.(isLoggedIn ? 'cart' : 'auth')}
               className="relative"
             >
               <ShoppingCart className="w-5 h-5" />

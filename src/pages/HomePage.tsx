@@ -6,36 +6,44 @@ import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
 interface HomePageProps {
   onNavigate?: (page: string, productId?: string) => void;
+  isAuthenticated?: boolean;
 }
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate, isAuthenticated }: HomePageProps) {
+  const handleAction = (page: string, productId?: string) => {
+    if (!isAuthenticated) {
+      onNavigate?.('auth');
+    } else {
+      onNavigate?.(page, productId);
+    }
+  };
   const featuredProducts = [
     {
       id: '1',
       name: 'Elegant Formal Dress',
       price: 'PKR 4,500',
-      image: 'https://images.unsplash.com/photo-1759090988109-2ed7abd1eefc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBlbGVnYW50JTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/elegant-formal-dress',
       customizable: true,
     },
     {
       id: '2',
       name: 'Traditional Embroidered Suit',
       price: 'PKR 6,200',
-      image: 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080',
+      image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/traditional-embroidered-suit',
       customizable: true,
     },
     {
       id: '3',
       name: 'Premium Fabric Collection',
       price: 'PKR 3,800',
-      image: 'https://images.unsplash.com/photo-1701964619775-b18422290cf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYWJyaWMlMjB0ZXh0aWxlJTIwcGF0dGVybnxlbnwxfHx8fDE3NjAyMzk4NDR8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/premium-fabric-collection',
       customizable: true,
     },
     {
       id: '4',
       name: 'Embroidery Special',
       price: 'PKR 5,500',
-      image: 'https://images.unsplash.com/photo-1720982892111-5e78b01b3ace?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbWJyb2lkZXJ5JTIwZGV0YWlsfGVufDF8fHx8MTc2MDI2MjQ0M3ww&ixlib=rb-4.1.0&q=80&w=1080',
+      image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/embroidery-special',
       customizable: true,
     },
   ];
@@ -60,7 +68,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <Button 
                 size="lg" 
                 className="bg-primary hover:bg-primary/90 rounded-full"
-                onClick={() => onNavigate?.('customize')}
+                onClick={() => handleAction('customize')}
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 Start Customizing
@@ -69,7 +77,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 size="lg" 
                 variant="outline" 
                 className="rounded-full"
-                onClick={() => onNavigate?.('products')}
+                onClick={() => handleAction('products')}
               >
                 Browse Collection
               </Button>
@@ -136,7 +144,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <Card 
               key={product.id} 
               className="group cursor-pointer hover:shadow-lg transition-shadow overflow-hidden"
-              onClick={() => onNavigate?.('product', product.id)}
+              onClick={() => handleAction('product', product.id)}
             >
               <div className="relative aspect-[3/4] overflow-hidden">
                 <ImageWithFallback
@@ -163,7 +171,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             size="lg" 
             variant="outline" 
             className="rounded-full"
-            onClick={() => onNavigate?.('products')}
+            onClick={() => handleAction('products')}
           >
             View All Products
           </Button>
@@ -180,7 +188,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <Button 
             size="lg" 
             className="bg-primary hover:bg-primary/90 rounded-full"
-            onClick={() => onNavigate?.('customize')}
+            onClick={() => handleAction('customize')}
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Start Designing Now

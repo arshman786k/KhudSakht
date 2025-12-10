@@ -665,20 +665,22 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
   const captureDesignSnapshot = (): string => {
     const renderer = rendererRef.current;
     const scene = sceneRef.current;
-    const camera = renderer?.domElement.parentElement?.querySelector('canvas');
     
     if (!renderer || !scene) {
       console.warn('Renderer or scene not ready for snapshot');
-      return 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080';
+      // Fallback image
+      return 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/traditional-embroidered-suit';
     }
     
     try {
+      // Capture the current canvas as PNG
       const imageData = renderer.domElement.toDataURL('image/png', 0.95);
-      console.log('Captured design snapshot:', imageData.substring(0, 50) + '...');
+      console.log('✅ Captured design snapshot successfully');
       return imageData;
     } catch (error) {
       console.error('Error capturing snapshot:', error);
-      return 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080';
+      // Fallback image
+      return 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/traditional-embroidered-suit';
     }
   };
 
@@ -721,7 +723,11 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 1.7, 3.2);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true, 
+      alpha: true,
+      preserveDrawingBuffer: true  // Required for toDataURL to capture canvas
+    });
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
@@ -893,8 +899,8 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
   }, [activeDecalImage, activeDecalTransform, selectedPart, selectedDecalId]);
 
   return (
-    <div className="min-h-screen bg-muted/40 py-10">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-muted/40">
+      <div className="container mx-auto px-4 py-10">
         <div className="text-center mb-10">
           <Badge className="mb-4 bg-primary/10 text-primary">3D Studio</Badge>
           <h1 className="text-3xl md:text-4xl mb-4">Design Your Ladies Kurta</h1>
@@ -904,32 +910,35 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:h-[calc(100vh-140px)]">
-          <Card className="lg:col-span-2 h-[400px] lg:h-full overflow-hidden lg:sticky lg:top-[100px]">
-            <CardContent className="p-0 h-full">
-              <div ref={viewerRef} className="relative h-full">
-                {!isModelLoaded && !loadError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                    <Sparkles className="w-5 h-5 animate-pulse" />
-                    <p>Loading ladies_qurta.glb...</p>
-                  </div>
-                )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 h-[600px] lg:h-[calc(100vh-240px)]">
+            <Card className="overflow-hidden h-full">
+              <CardContent className="p-0 h-full">
+                <div ref={viewerRef} className="relative h-full">
+                  {!isModelLoaded && !loadError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                      <Sparkles className="w-5 h-5 animate-pulse" />
+                      <p>Loading ladies_qurta.glb...</p>
+                    </div>
+                  )}
 
-                {loadError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-destructive text-center px-6">
-                    <p>{loadError}</p>
-                    <Button variant="outline" onClick={() => window.location.reload()}>
-                      Refresh Page
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  {loadError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-destructive text-center px-6">
+                      <p>{loadError}</p>
+                      <Button variant="outline" onClick={() => window.location.reload()}>
+                        Refresh Page
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          <div className="space-y-6 lg:h-[calc(100vh-140px)] lg:pr-4">
-            <Card>
-              <CardContent className="p-6 space-y-4">
+          <div className="h-[600px] lg:h-[calc(100vh-240px)] overflow-y-auto pr-2">
+            <div className="space-y-6 pb-10">
+              <Card>
+                <CardContent className="p-6 space-y-4">
                 {/* Tab Buttons */}
                 <div className="flex flex-wrap gap-2 mb-6">
                   {customizationSections.map((section) => (
@@ -1689,6 +1698,7 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
                 </Button>
               </CardContent>
             </Card>
+            </div>
           </div>
         </div>
       </div>

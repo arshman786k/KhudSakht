@@ -6,6 +6,14 @@ import { Label } from '../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Checkbox } from '../components/ui/checkbox';
 import { Mail, Lock, User, Phone } from 'lucide-react';
+import { auth, db } from '../config/firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  updateProfile 
+} from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { toast } from 'sonner@2.0.3';
 
 interface AuthPageProps {
   onLogin?: (email: string, name?: string) => void;
@@ -14,25 +22,59 @@ interface AuthPageProps {
 export function AuthPage({ onLogin }: AuthPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+      const user = userCredential.user;
+      
+      toast.success('Login successful!');
+      onLogin?.(user.email || loginEmail, user.displayName || undefined);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error(error.message || 'Login failed. Please check your credentials.');
+    } finally {
       setIsLoading(false);
-      onLogin?.(loginEmail);
-    }, 1000);
+    }
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+      const user = userCredential.user;
+      
+      // Update profile with display name
+      await updateProfile(user, {
+        displayName: signupName
+      });
+      
+      // Save user data to Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        name: signupName,
+        email: signupEmail,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      
+      toast.success('Account created successfully!');
+      onLogin?.(user.email || signupEmail, signupName);
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      toast.error(error.message || 'Signup failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      onLogin?.(signupEmail, signupName);
-    }, 1000);
+    }
   };
 
   return (
@@ -82,6 +124,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                         type="password" 
                         placeholder="••••••••"
                         className="pl-10"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
                         required
                       />
                     </div>
@@ -165,7 +209,10 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                         type="password" 
                         placeholder="••••••••"
                         className="pl-10"
+                        value={signupPassword}
+                        onChange={(e) => setSignupPassword(e.target.value)}
                         required
+                        minLength={6}
                       />
                     </div>
                   </div>

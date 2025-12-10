@@ -17,12 +17,12 @@ export function ProductListingPage({ onNavigate }: ProductListingPageProps) {
   const [priceRange, setPriceRange] = useState([0, 10000]);
 
   const products = [
-    { id: '1', name: 'Elegant Formal Dress', price: 4500, category: 'Formal', image: 'https://images.unsplash.com/photo-1759090988109-2ed7abd1eefc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBlbGVnYW50JTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080', customizable: true },
-    { id: '2', name: 'Traditional Embroidered Suit', price: 6200, category: 'Traditional', image: 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080', customizable: true },
-    { id: '3', name: 'Premium Fabric Collection', price: 3800, category: 'Casual', image: 'https://images.unsplash.com/photo-1701964619775-b18422290cf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYWJyaWMlMjB0ZXh0aWxlJTIwcGF0dGVybnxlbnwxfHx8fDE3NjAyMzk4NDR8MA&ixlib=rb-4.1.0&q=80&w=1080', customizable: true },
-    { id: '4', name: 'Embroidery Special', price: 5500, category: 'Traditional', image: 'https://images.unsplash.com/photo-1720982892111-5e78b01b3ace?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbWJyb2lkZXJ5JTIwZGV0YWlsfGVufDF8fHx8MTc2MDI2MjQ0M3ww&ixlib=rb-4.1.0&q=80&w=1080', customizable: true },
-    { id: '5', name: 'Summer Cotton Dress', price: 2900, category: 'Casual', image: 'https://images.unsplash.com/photo-1759090988109-2ed7abd1eefc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWwlMjBlbGVnYW50JTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080', customizable: false },
-    { id: '6', name: 'Party Wear Collection', price: 7800, category: 'Formal', image: 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080', customizable: true },
+    { id: '1', name: 'Elegant Formal Dress', price: 4500, category: 'Formal', image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/elegant-formal-dress', customizable: true },
+    { id: '2', name: 'Traditional Embroidered Suit', price: 6200, category: 'Traditional', image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/traditional-embroidered-suit', customizable: true },
+    { id: '3', name: 'Premium Fabric Collection', price: 3800, category: 'Casual', image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/premium-fabric-collection', customizable: true },
+    { id: '4', name: 'Embroidery Special', price: 5500, category: 'Traditional', image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/embroidery-special', customizable: true },
+    { id: '5', name: 'Summer Cotton Dress', price: 2900, category: 'Casual', image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/summer-cotton-dress', customizable: false },
+    { id: '6', name: 'Party Wear Collection', price: 7800, category: 'Formal', image: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_800,f_auto,q_auto/party-wear-collection', customizable: true },
   ];
 
   const categories = ['All', 'Formal', 'Traditional', 'Casual', 'Party Wear'];
@@ -177,7 +177,7 @@ export function ProductListingPage({ onNavigate }: ProductListingPageProps) {
                         <Button 
                           size="sm" 
                           className="flex-1 bg-primary hover:bg-primary/90 rounded-full"
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
                             onNavigate?.('customize');
                           }}
@@ -189,7 +189,7 @@ export function ProductListingPage({ onNavigate }: ProductListingPageProps) {
                         size="sm" 
                         variant="outline" 
                         className={`${product.customizable ? 'flex-1' : 'w-full'} rounded-full`}
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           onNavigate?.('product', product.id);
                         }}

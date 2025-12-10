@@ -46,19 +46,12 @@ export function CartPage({ onNavigate, cartItems, onUpdateQuantity, onRemoveItem
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="w-24 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                        {item.customized && item.image.startsWith('data:image') ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <ImageWithFallback
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
-                        )}
+                        <img
+                          src={item.image || 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/traditional-embroidered-suit'}
+                          alt={item.name}
+                          className="w-full h-full object-cover block"
+                          style={{ display: 'block', maxWidth: '100%', height: '100%' }}
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-start justify-between mb-2">

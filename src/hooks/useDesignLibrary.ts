@@ -13,8 +13,28 @@ type UseDesignLibraryReturn = {
   refetch: () => void;
 };
 
-// Use proxy in development, direct URL in production
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'http://localhost:5000');
+// Mock designs data - no backend required
+const mockDesigns: Record<string, DesignItem[]> = {
+  'front': [
+    { id: 'front-1', name: 'Floral Pattern', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/floral-pattern' },
+    { id: 'front-2', name: 'Geometric Design', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/geometric-design' },
+    { id: 'front-3', name: 'Traditional Motif', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/traditional-motif' },
+  ],
+  'back': [
+    { id: 'back-1', name: 'Simple Border', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/simple-border' },
+    { id: 'back-2', name: 'Elegant Pattern', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/elegant-pattern' },
+  ],
+  'gala': [
+    { id: 'gala-1', name: 'Classic Gala', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/classic-gala' },
+    { id: 'gala-2', name: 'Modern Gala', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/modern-gala' },
+  ],
+  'shalwar': [
+    { id: 'shalwar-1', name: 'Traditional Print', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/traditional-print' },
+  ],
+  'bazo': [
+    { id: 'bazo-1', name: 'Sleeve Design', url: 'https://res.cloudinary.com/dmqcpclos/image/upload/c_limit,w_400,f_auto,q_auto/sleeve-design' },
+  ],
+};
 
 export function useDesignLibrary(part: string): UseDesignLibraryReturn {
   const [designs, setDesigns] = useState<DesignItem[]>([]);
@@ -32,33 +52,15 @@ export function useDesignLibrary(part: string): UseDesignLibraryReturn {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/designs/${part}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      if (!response.ok) {
-        if (response.status === 500) {
-          throw new Error('Internal Server Error - The design API server may not be running. Please start it with: npm run server');
-        }
-        throw new Error(`Failed to fetch designs: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setDesigns(Array.isArray(data) ? data : []);
+      // Get mock designs for the part
+      const partDesigns = mockDesigns[part] || [];
+      setDesigns(partDesigns);
     } catch (err) {
-      let errorMessage = 'Failed to fetch designs';
-      
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        errorMessage = 'Cannot connect to design API server. Make sure the server is running on port 5000. Start it with: npm run server';
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
-      console.error('Error fetching designs:', err);
+      console.error('Error loading designs:', err);
+      setError('Failed to load designs');
       setDesigns([]);
     } finally {
       setLoading(false);

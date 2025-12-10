@@ -26,17 +26,7 @@ export function DesignPicker({ part, onSelect, selectedDesignId }: DesignPickerP
     return (
       <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
         <p className="text-sm font-medium text-destructive mb-2">⚠️ {error}</p>
-        <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-          <p><strong>To fix this:</strong></p>
-          <ol className="list-decimal list-inside space-y-1 ml-2">
-            <li>Open a new terminal window</li>
-            <li>Navigate to the project directory</li>
-            <li>Run: <code className="bg-muted px-1 py-0.5 rounded">npm run server</code></li>
-            <li>Wait for the message: "✅ Design API server running on http://localhost:5000"</li>
-            <li>Then refresh this page</li>
-          </ol>
-          <p className="mt-2 text-xs">Or use: <code className="bg-muted px-1 py-0.5 rounded">npm run dev:all</code> to start both servers together</p>
-        </div>
+        <p className="text-xs text-muted-foreground">Unable to load design library at this time.</p>
       </div>
     );
   }
