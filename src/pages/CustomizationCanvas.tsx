@@ -7,14 +7,27 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Slider } from '../components/ui/slider';
-import { Sparkles, ShoppingCart, Download } from 'lucide-react';
+import { Sparkles, ShoppingCart, Download, Heart } from 'lucide-react';
 import { DesignPicker } from '../components/DesignPicker';
 import type { DesignItem } from '../hooks/useDesignLibrary';
 import type { CartItem } from '../App';
 
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth';
+
+interface SavedDesign {
+  id: string;
+  name: string;
+  image: string;
+  date: string;
+  customDetails?: string;
+}
+
 interface CustomizationCanvasProps {
-  onNavigate?: (page: string) => void;
-  onAddToCart?: (item: Omit<CartItem, 'id' | 'quantity'>) => void;
+  onNavigate?: (page: Page) => void;
+  onAddToCart?: (item: Omit<CartItem, 'id'>) => void;
+  onSaveDesign?: (design: { name: string; image: string; customDetails?: string }) => void;
+  selectedDesign?: SavedDesign | null;
+  onBack?: () => void;
 }
 
 type GarmentPart = {
@@ -164,9 +177,10 @@ const customizationSections = [
   { key: 'shalwar', label: 'Shalwar' },
 ];
 
-export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCanvasProps) {
+export function CustomizationCanvas({ onNavigate, onAddToCart, onSaveDesign, selectedDesign, onBack }: CustomizationCanvasProps) {
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const modelRef = useRef<THREE.Group | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -722,6 +736,7 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 1.7, 3.2);
+    cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -901,12 +916,31 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
   return (
     <div className="min-h-screen bg-muted/40">
       <div className="container mx-auto px-4 py-10">
+        {onBack && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onBack}
+            className="mb-4 -ml-2"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </Button>
+        )}
         <div className="text-center mb-10">
-          <Badge className="mb-4 bg-primary/10 text-primary">3D Studio</Badge>
-          <h1 className="text-3xl md:text-4xl mb-4">Design Your Ladies Kurta</h1>
+          <Badge className="mb-4 bg-primary/10 text-primary">
+            {selectedDesign ? 'Editing Saved Design' : '3D Studio'}
+          </Badge>
+          <h1 className="text-3xl md:text-4xl mb-4">
+            {selectedDesign ? `Edit: ${selectedDesign.name}` : 'Design Your Ladies Kurta'}
+          </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Preview the high-fidelity GLB model directly in your browser. Adjust fabrics, colors, and fit before
-            adding to cart or exporting a snapshot for reference.
+            {selectedDesign 
+              ? `Editing your saved design${selectedDesign.customDetails ? ` - ${selectedDesign.customDetails}` : ''}. Make changes and save again to update.`
+              : 'Preview the high-fidelity GLB model directly in your browser. Adjust fabrics, colors, and fit before adding to cart or exporting a snapshot for reference.'
+            }
           </p>
         </div>
 
@@ -915,6 +949,19 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
             <Card className="overflow-hidden h-full">
               <CardContent className="p-0 h-full">
                 <div ref={viewerRef} className="relative h-full">
+                  {selectedDesign && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <Card className="p-2 bg-background/90 backdrop-blur">
+                        <img 
+                          src={selectedDesign.image} 
+                          alt="Original design" 
+                          className="w-24 h-32 object-cover rounded"
+                        />
+                        <p className="text-xs text-center mt-1">Original</p>
+                      </Card>
+                    </div>
+                  )}
+                  
                   {!isModelLoaded && !loadError && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
                       <Sparkles className="w-5 h-5 animate-pulse" />
@@ -1671,6 +1718,7 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
                       customDetails: customizationParts.join(' • '),
                       image: designSnapshot,
                       customized: true,
+                      quantity: 1,
                     });
                     onNavigate?.('cart');
                   }}
@@ -1687,6 +1735,37 @@ export function CustomizationCanvas({ onNavigate, onAddToCart }: CustomizationCa
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Download Preview
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full rounded-full"
+                  size="lg"
+                  onClick={() => {
+                    if (!rendererRef.current || !sceneRef.current || !cameraRef.current) {
+                      return;
+                    }
+                    
+                    const canvas = rendererRef.current.domElement;
+                    rendererRef.current.render(sceneRef.current, cameraRef.current);
+                    const designSnapshot = canvas.toDataURL('image/png');
+                    
+                    const fabric = fabrics.find(f => f.id === selectedFabric);
+                    const color = colors.find(c => c.value === partColors[selectedPart]);
+                    
+                    const customizationParts: string[] = [];
+                    if (fabric?.name) customizationParts.push(fabric.name);
+                    if (color?.name) customizationParts.push(color.name);
+                    
+                    onSaveDesign?.({
+                      name: 'Custom Design - Ladies Kurta',
+                      image: designSnapshot,
+                      customDetails: customizationParts.join(' • '),
+                    });
+                  }}
+                  disabled={!isModelLoaded}
+                >
+                  <Heart className="w-4 h-4 mr-2" />
+                  Save Design
                 </Button>
                 <Button
                   variant="ghost"

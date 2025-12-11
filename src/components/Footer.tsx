@@ -1,6 +1,12 @@
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 
-export function Footer() {
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth' | 'about' | 'faq' | 'shipping' | 'returns' | 'sizeguide';
+
+interface FooterProps {
+  onNavigate: (page: Page, productId?: string) => void;
+}
+
+export function Footer({ onNavigate }: FooterProps) {
   return (
     <footer className="bg-card border-t border-border mt-20">
       <div className="container mx-auto px-4 py-12">
@@ -22,10 +28,38 @@ export function Footer() {
           <div>
             <h4 className="mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">About Us</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Shop</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Customize</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Track Order</a></li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('about')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  About Us
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('products')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Shop
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('customize')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Customize
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('dashboard')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Track Order
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -33,10 +67,38 @@ export function Footer() {
           <div>
             <h4 className="mb-4">Customer Service</h4>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Shipping Info</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Returns</a></li>
-              <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Size Guide</a></li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('faq')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  FAQ
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('shipping')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Shipping Info
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('returns')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Returns
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => onNavigate('sizeguide')} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Size Guide
+                </button>
+              </li>
             </ul>
           </div>
 

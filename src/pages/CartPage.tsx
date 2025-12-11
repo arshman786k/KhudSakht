@@ -5,14 +5,17 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import type { CartItem } from '../App';
 
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth';
+
 interface CartPageProps {
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: Page) => void;
   cartItems: CartItem[];
   onUpdateQuantity: (id: string, change: number) => void;
   onRemoveItem: (id: string) => void;
+  onBack?: () => void;
 }
 
-export function CartPage({ onNavigate, cartItems, onUpdateQuantity, onRemoveItem }: CartPageProps) {
+export function CartPage({ onNavigate, cartItems, onUpdateQuantity, onRemoveItem, onBack }: CartPageProps) {
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal > 3000 ? 0 : 200;
@@ -21,6 +24,19 @@ export function CartPage({ onNavigate, cartItems, onUpdateQuantity, onRemoveItem
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
+        {onBack && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onBack}
+            className="mb-4 -ml-2"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </Button>
+        )}
         <h1 className="text-3xl md:text-4xl mb-8">Shopping Cart</h1>
 
         {cartItems.length === 0 ? (

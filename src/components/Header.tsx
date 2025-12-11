@@ -3,9 +3,11 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth';
+
 interface HeaderProps {
   cartCount?: number;
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: Page) => void;
   isLoggedIn?: boolean;
 }
 

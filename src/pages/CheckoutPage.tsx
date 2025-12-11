@@ -7,18 +7,23 @@ import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { CheckCircle2, CreditCard, Smartphone } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import type { CartItem, Order } from '../App';
 
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth';
+
 interface CheckoutPageProps {
-  onNavigate?: (page: string) => void;
+  onNavigate?: (page: Page) => void;
   cartItems: CartItem[];
   onPlaceOrder: (shippingInfo: Order['shippingInfo'], paymentMethod: string) => Promise<void>;
+  onBack?: () => void;
 }
 
-export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder }: CheckoutPageProps) {
+export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder, onBack }: CheckoutPageProps) {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   // Shipping form state
   const [firstName, setFirstName] = useState('');
@@ -74,29 +79,87 @@ export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder }: CheckoutPa
       return;
     }
     
-    await onPlaceOrder(
-      {
-        firstName,
-        lastName,
-        email,
-        phone,
-        address,
-        city,
-        postal,
-      },
-      paymentMethod
-    );
+    // If payment method is online (not COD), show payment gateway
+    if (paymentMethod !== 'cod') {
+      setShowPaymentModal(true);
+    } else {
+      // For COD, directly place order
+      await onPlaceOrder(
+        {
+          firstName,
+          lastName,
+          email,
+          phone,
+          address,
+          city,
+          postal,
+        },
+        paymentMethod
+      );
+      
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onNavigate?.('dashboard');
+      }, 3000);
+    }
+  };
+
+  const handlePaymentSubmit = async () => {
+    setIsProcessingPayment(true);
     
-    setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      onNavigate?.('dashboard');
-    }, 3000);
+    // Simulate payment processing (dummy gateway)
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Simulate random success/failure (90% success rate)
+    const isSuccess = Math.random() > 0.1;
+    
+    if (isSuccess) {
+      await onPlaceOrder(
+        {
+          firstName,
+          lastName,
+          email,
+          phone,
+          address,
+          city,
+          postal,
+        },
+        paymentMethod
+      );
+      
+      setIsProcessingPayment(false);
+      setShowPaymentModal(false);
+      setShowSuccess(true);
+      
+      setTimeout(() => {
+        setShowSuccess(false);
+        onNavigate?.('dashboard');
+      }, 3000);
+    } else {
+      setIsProcessingPayment(false);
+      toast.error('Payment Failed', {
+        description: 'Transaction declined. Please try again or use a different payment method.',
+      });
+    }
   };
 
   return (
     <div className="min-h-screen py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
+      <div className="container mx-auto px-4">
+        {onBack && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onBack}
+            className="mb-4 -ml-2"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </Button>
+        )}
         <h1 className="text-3xl md:text-4xl mb-8">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -214,6 +277,20 @@ export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder }: CheckoutPa
                       <div className="flex-1">
                         <p>Easypaisa</p>
                         <p className="text-sm text-muted-foreground">Pay with Easypaisa mobile wallet</p>
+                      </div>
+                    </label>
+
+                    <label 
+                      htmlFor="payfast"
+                      className={`flex items-center gap-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        paymentMethod === 'payfast' ? 'border-primary bg-primary/5' : 'border-border'
+                      }`}
+                    >
+                      <RadioGroupItem value="payfast" id="payfast" />
+                      <CreditCard className="w-6 h-6 text-primary" />
+                      <div className="flex-1">
+                        <p>Payfast</p>
+                        <p className="text-sm text-muted-foreground">Pay securely with cards via Payfast</p>
                       </div>
                     </label>
 
@@ -344,6 +421,87 @@ export function CheckoutPage({ onNavigate, cartItems, onPlaceOrder }: CheckoutPa
           </div>
         </div>
       </div>
+
+      {/* Payment Gateway Modal */}
+      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {paymentMethod === 'payfast' && 'Payfast Payment Gateway'}
+              {paymentMethod === 'jazzcash' && 'JazzCash Payment'}
+              {paymentMethod === 'easypaisa' && 'Easypaisa Payment'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <p className="text-sm mb-2">Order Total</p>
+              <p className="text-2xl font-bold">PKR {total.toLocaleString()}</p>
+            </div>
+
+            {paymentMethod === 'payfast' && (
+              <div className="space-y-3">
+                <div>
+                  <Label>Card Number</Label>
+                  <Input placeholder="1234 5678 9012 3456" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Expiry</Label>
+                    <Input placeholder="MM/YY" />
+                  </div>
+                  <div>
+                    <Label>CVV</Label>
+                    <Input placeholder="123" type="password" maxLength={3} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {(paymentMethod === 'jazzcash' || paymentMethod === 'easypaisa') && (
+              <div className="space-y-3">
+                <div>
+                  <Label>Mobile Number</Label>
+                  <Input placeholder="03XX XXXXXXX" />
+                </div>
+                <div>
+                  <Label>MPIN</Label>
+                  <Input placeholder="Enter your MPIN" type="password" />
+                </div>
+              </div>
+            )}
+
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3 rounded-lg">
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                🔒 This is a demo payment gateway. Use any test values. Payment will be simulated.
+              </p>
+            </div>
+
+            <Button
+              className="w-full bg-primary hover:bg-primary/90"
+              onClick={handlePaymentSubmit}
+              disabled={isProcessingPayment}
+            >
+              {isProcessingPayment ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Processing Payment...
+                </>
+              ) : (
+                `Pay PKR ${total.toLocaleString()}`
+              )}
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowPaymentModal(false)}
+              disabled={isProcessingPayment}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Success Modal */}
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>

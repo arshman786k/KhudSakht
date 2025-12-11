@@ -4,13 +4,15 @@ import { Badge } from '../components/ui/badge';
 import { Sparkles, Palette, Truck, Shield } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth';
+
 interface HomePageProps {
-  onNavigate?: (page: string, productId?: string) => void;
+  onNavigate?: (page: Page, productId?: string) => void;
   isAuthenticated?: boolean;
 }
 
 export function HomePage({ onNavigate, isAuthenticated }: HomePageProps) {
-  const handleAction = (page: string, productId?: string) => {
+  const handleAction = (page: Page, productId?: string) => {
     if (!isAuthenticated) {
       onNavigate?.('auth');
     } else {

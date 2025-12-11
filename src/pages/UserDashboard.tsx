@@ -1,29 +1,79 @@
+import { useState } from 'react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { toast } from 'sonner';
 import { Package, Heart, User, MapPin, Clock, CheckCircle2, Truck, LogOut } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import type { User as UserType, Order } from '../App';
+import type { User as UserType, Order, SavedDesign } from '../App';
 
-interface UserDashboardProps {
-  onNavigate?: (page: string) => void;
-  user: UserType | null;
-  orders: Order[];
-  onLogout?: () => void;
+type Page = 'home' | 'products' | 'product' | 'customize' | 'cart' | 'checkout' | 'dashboard' | 'auth';
+
+interface Address {
+  id: string;
+  label: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  isDefault: boolean;
 }
 
-export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashboardProps) {
-  const savedDesigns = [
-    { id: '1', name: 'My Custom Suit', image: 'https://images.unsplash.com/photo-1663082076137-486bc3ff6fd7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHRyYWRpdGlvbmFsJTIwZHJlc3N8ZW58MXx8fHwxNzYwMjYyNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080', date: '2025-10-08' },
-    { id: '2', name: 'Embroidered Design', image: 'https://images.unsplash.com/photo-1720982892111-5e78b01b3ace?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlbWJyb2lkZXJ5JTIwZGV0YWlsfGVufDF8fHx8MTc2MDI2MjQ0M3ww&ixlib=rb-4.1.0&q=80&w=1080', date: '2025-10-06' },
-  ];
+interface UserDashboardProps {
+  onNavigate?: (page: Page) => void;
+  user: UserType | null;
+  orders: Order[];
+  savedDesigns: SavedDesign[];
+  addresses: Address[];
+  onEditDesign?: (design: SavedDesign) => void;
+  onOrderDesign?: (design: SavedDesign) => void;
+  onSaveAddress?: (address: Omit<Address, 'id'>) => Promise<void>;
+  onDeleteAddress?: (id: string) => Promise<void>;
+  onUpdateProfile?: (data: { name: string; phone: string }) => Promise<void>;
+  onLogout: () => void;
+  onBack?: () => void;
+}
+
+export function UserDashboard({ onNavigate, user, orders, savedDesigns, addresses = [], onEditDesign, onOrderDesign, onSaveAddress, onDeleteAddress, onUpdateProfile, onLogout, onBack }: UserDashboardProps) {
+  const [activeTab, setActiveTab] = useState('orders');
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState(user?.name || '');
+  const [profilePhone, setProfilePhone] = useState('');
+  
+  // Address form state
+  const [addressForm, setAddressForm] = useState({
+    label: '',
+    fullName: '',
+    phone: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    isDefault: false,
+  });
 
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
+          {onBack && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onBack}
+              className="mb-4 -ml-2"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back
+            </Button>
+          )}
           <h1 className="text-3xl md:text-4xl mb-2">My Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Manage your orders and profile</p>
         </div>
@@ -43,19 +93,35 @@ export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashbo
                   </div>
                 </div>
                 <nav className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button 
+                    variant={activeTab === 'orders' ? 'secondary' : 'ghost'} 
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('orders')}
+                  >
                     <Package className="w-4 h-4 mr-2" />
                     Orders
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button 
+                    variant={activeTab === 'designs' ? 'secondary' : 'ghost'} 
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('designs')}
+                  >
                     <Heart className="w-4 h-4 mr-2" />
                     Saved Designs
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button 
+                    variant={activeTab === 'addresses' ? 'secondary' : 'ghost'} 
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('addresses')}
+                  >
                     <MapPin className="w-4 h-4 mr-2" />
                     Addresses
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button 
+                    variant={activeTab === 'profile' ? 'secondary' : 'ghost'} 
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab('profile')}
+                  >
                     <User className="w-4 h-4 mr-2" />
                     Profile Settings
                   </Button>
@@ -76,10 +142,12 @@ export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashbo
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Tabs defaultValue="orders" className="w-full">
-              <TabsList className="mb-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="mb-6 grid w-full grid-cols-4">
                 <TabsTrigger value="orders">My Orders</TabsTrigger>
                 <TabsTrigger value="designs">Saved Designs</TabsTrigger>
+                <TabsTrigger value="addresses">Addresses</TabsTrigger>
+                <TabsTrigger value="profile">Profile</TabsTrigger>
               </TabsList>
 
               {/* Orders Tab */}
@@ -220,8 +288,23 @@ export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashbo
 
               {/* Saved Designs Tab */}
               <TabsContent value="designs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {savedDesigns.map((design) => (
+                {savedDesigns.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <Heart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-xl mb-2">No Saved Designs Yet</h3>
+                      <p className="text-muted-foreground mb-6">Create and save custom designs to see them here</p>
+                      <Button 
+                        className="bg-primary hover:bg-primary/90 rounded-full"
+                        onClick={() => onNavigate?.('customize')}
+                      >
+                        Create Design
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {savedDesigns.map((design) => (
                     <Card key={design.id} className="group cursor-pointer hover:shadow-lg transition-shadow">
                       <div className="relative aspect-[3/4] overflow-hidden rounded-t-lg">
                         <ImageWithFallback
@@ -244,7 +327,7 @@ export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashbo
                           <Button 
                             size="sm" 
                             className="flex-1 bg-primary hover:bg-primary/90 rounded-full"
-                            onClick={() => onNavigate?.('customize')}
+                            onClick={() => onEditDesign?.(design)}
                           >
                             Edit Design
                           </Button>
@@ -252,6 +335,7 @@ export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashbo
                             size="sm" 
                             variant="outline" 
                             className="flex-1 rounded-full"
+                            onClick={() => onOrderDesign?.(design)}
                           >
                             Order Now
                           </Button>
@@ -259,7 +343,216 @@ export function UserDashboard({ onNavigate, user, orders, onLogout }: UserDashbo
                       </CardContent>
                     </Card>
                   ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Addresses Tab */}
+              <TabsContent value="addresses" className="space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-semibold">My Addresses</h2>
+                  <Button onClick={() => setIsAddingAddress(true)}>
+                    + Add New Address
+                  </Button>
                 </div>
+
+                {isAddingAddress && (
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="text-lg mb-4">Add New Address</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Address Label</Label>
+                          <Input 
+                            placeholder="Home, Office, etc."
+                            value={addressForm.label}
+                            onChange={(e) => setAddressForm({...addressForm, label: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label>Full Name</Label>
+                          <Input 
+                            placeholder="John Doe"
+                            value={addressForm.fullName}
+                            onChange={(e) => setAddressForm({...addressForm, fullName: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label>Phone Number</Label>
+                          <Input 
+                            placeholder="03XX XXXXXXX"
+                            value={addressForm.phone}
+                            onChange={(e) => setAddressForm({...addressForm, phone: e.target.value})}
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>Street Address</Label>
+                          <Input 
+                            placeholder="House# Street# Area"
+                            value={addressForm.address}
+                            onChange={(e) => setAddressForm({...addressForm, address: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label>City</Label>
+                          <Input 
+                            placeholder="Karachi, Lahore, etc."
+                            value={addressForm.city}
+                            onChange={(e) => setAddressForm({...addressForm, city: e.target.value})}
+                          />
+                        </div>
+                        <div>
+                          <Label>Postal Code</Label>
+                          <Input 
+                            placeholder="75500"
+                            value={addressForm.postalCode}
+                            onChange={(e) => setAddressForm({...addressForm, postalCode: e.target.value})}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <Button 
+                          onClick={async () => {
+                            if (onSaveAddress) {
+                              await onSaveAddress(addressForm);
+                              setIsAddingAddress(false);
+                              setAddressForm({
+                                label: '',
+                                fullName: '',
+                                phone: '',
+                                address: '',
+                                city: '',
+                                postalCode: '',
+                                isDefault: false,
+                              });
+                            }
+                          }}
+                        >
+                          Save Address
+                        </Button>
+                        <Button variant="outline" onClick={() => setIsAddingAddress(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {addresses.length === 0 && !isAddingAddress ? (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <MapPin className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-xl mb-2">No Addresses Saved</h3>
+                      <p className="text-muted-foreground mb-6">Add your delivery addresses for faster checkout</p>
+                      <Button onClick={() => setIsAddingAddress(true)}>
+                        Add First Address
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {addresses.map((addr) => (
+                      <Card key={addr.id}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <Badge variant={addr.isDefault ? 'default' : 'outline'}>
+                                {addr.label}
+                              </Badge>
+                              {addr.isDefault && (
+                                <Badge variant="secondary" className="ml-2">Default</Badge>
+                              )}
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => onDeleteAddress?.(addr.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                          <h4 className="font-medium">{addr.fullName}</h4>
+                          <p className="text-sm text-muted-foreground">{addr.phone}</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {addr.address}, {addr.city} - {addr.postalCode}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Profile Settings Tab */}
+              <TabsContent value="profile" className="space-y-6">
+                <h2 className="text-2xl font-semibold mb-4">Profile Settings</h2>
+                
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg mb-4">Personal Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>Full Name</Label>
+                        <Input 
+                          value={profileName}
+                          onChange={(e) => setProfileName(e.target.value)}
+                          disabled={!editingProfile}
+                        />
+                      </div>
+                      <div>
+                        <Label>Email Address</Label>
+                        <Input 
+                          value={user?.email || ''}
+                          disabled
+                          className="bg-muted"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+                      </div>
+                      <div>
+                        <Label>Phone Number</Label>
+                        <Input 
+                          value={profilePhone}
+                          onChange={(e) => setProfilePhone(e.target.value)}
+                          placeholder="03XX XXXXXXX"
+                          disabled={!editingProfile}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2 pt-4">
+                        {!editingProfile ? (
+                          <Button onClick={() => setEditingProfile(true)}>
+                            Edit Profile
+                          </Button>
+                        ) : (
+                          <>
+                            <Button 
+                              onClick={async () => {
+                                if (onUpdateProfile) {
+                                  await onUpdateProfile({
+                                    name: profileName,
+                                    phone: profilePhone,
+                                  });
+                                  setEditingProfile(false);
+                                }
+                              }}
+                            >
+                              Save Changes
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                setProfileName(user?.name || '');
+                                setEditingProfile(false);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>
